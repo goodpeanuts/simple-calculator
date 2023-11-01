@@ -12,3 +12,4 @@ version = "0.22.0"
 [dependencies.egui_extras]
 version = "0.22.0"
 features = ["svg"]
+
