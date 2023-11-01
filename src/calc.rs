@@ -1,10 +1,12 @@
+//use std::os::windows::prelude::BorrowedHandle;
+
 use eframe::egui;
+use egui::Color32;
+
 
 //use egui_extras::*;
 
-use rust1::{calc_config, calc_state, keyboard, math_exp,loan};
-
-
+use rust1::{calc_config, calc_state, keyboard, loan, math_exp};
 
 pub(crate) struct CalcApp {
     pub(crate) ui_state: calc_state::UiState,
@@ -16,15 +18,12 @@ pub const PRIMARY_COLOR: egui::Color32 = egui::Color32::from_rgb(25, 95, 200);
 pub const PRIMARY_COLOR_HOVERED: egui::Color32 = egui::Color32::from_rgb(35, 115, 230);
 pub const PRIMARY_COLOR_ACTIVE: egui::Color32 = egui::Color32::from_rgb(15, 75, 170);
 
-
-
 impl CalcApp {
-
-    fn standard_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui){
+    fn standard_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.allocate_ui_with_layout(
             ui.available_size(),
             egui::Layout::top_down(egui::Align::Min),
-            |ui|{
+            |ui| {
                 let size_font = |l: f32| -> f32 {
                     if l <= 22.0 {
                         25.0
@@ -51,7 +50,7 @@ impl CalcApp {
                     .wrap(true),
                 );
                 ui.add_sized(
-                    [330.0, 45.0],
+                    [330.0, 75.0],
                     egui::Label::new(
                         egui::RichText::new(result)
                             .font(egui::FontId::monospace(size_font(result_length)))
@@ -59,113 +58,167 @@ impl CalcApp {
                     )
                     .wrap(true),
                 );
-        });
-        ui.allocate_ui_with_layout(ui.available_size(),
-            egui::Layout::top_down(egui::Align::Center)
-            , |ui|{
-                    keyboard::CalcKeyboard::from_buffer(&mut self.math_exp).show(ui)
-        });
-        
-    }
-
-    fn loan_ui(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui){
-        let space = 20.0;
-
+            },
+        );
         ui.allocate_ui_with_layout(
             ui.available_size(),
             egui::Layout::top_down(egui::Align::Center),
-        |ui|{
-
-
-            // 上半部分
-            ui.allocate_ui_with_layout(
-                ui.available_size(),
-                egui::Layout::left_to_right(egui::Align::Center),
-                |ui|{
-                    ui.add_space(space);
-                    ui.vertical(|ui|{
-                        // 竖直方向上标签间距
-                        let temp_space = egui::vec2(0.0, 22.0);
-                        ui.spacing_mut().item_spacing = temp_space;
-                        ui.label("还款方式：");
-                        ui.label("贷款年限(年):");
-                        ui.label("贷款金额(万元):");
-                        ui.label("贷款利率(%):");
-
-                    });
-
-                    let mut my_string = String::new();
-
-                    ui.add_space(space);
-                    ui.vertical(|ui|{
-                        let temp_space = egui::vec2(10.0, 22.0);
-                        ui.spacing_mut().item_spacing = temp_space;
-                        ui.horizontal(|ui|{
-                            ui.selectable_value(&mut self.loan.loan_type, loan::LoanType::EqualInterest, "等额本息");
-                            ui.selectable_value(&mut self.loan.loan_type, loan::LoanType::EqualPrincipal, "等额本金");
-                        });
-                        // 贷款年限
-                        ui.add(egui::DragValue::new(&mut self.loan.loan_year));
-                        // 贷款金额
-                        ui.add(egui::DragValue::new(&mut self.loan.loan_money));
-                        // 贷款利率
-                        ui.add(egui::DragValue::new(&mut self.loan.loan_rate));
-                    });
-            });
-
-            // 中间部分
-            ui.horizontal(|ui|{
-                if ui.add(egui::Button::new("计算")).clicked() {
-                    
-                }
-
-                if ui.add(egui::Button::new("重置")).clicked() {
-                
-                }
-            });
-
-            // 下半部分
-            ui.allocate_ui_with_layout(
-                ui.available_size(),
-                egui::Layout::left_to_right(egui::Align::Center),
-                |ui|{
-                    ui.add_space(space);
-                    ui.vertical(|ui|{
-                        // 竖直方向上标签间距
-                        let temp_space = egui::vec2(0.0, 22.0);
-                        ui.spacing_mut().item_spacing = temp_space;
-                        ui.label("月均还款(元):");
-                        ui.label("贷款年限(元):");
-                        ui.label("贷款金额(元):");
-
-                    });
-
-                    let mut my_string = String::new();
-
-                    ui.add_space(space);
-                    ui.vertical(|ui|{
-                        let temp_space = egui::vec2(10.0, 22.0);
-                        ui.spacing_mut().item_spacing = temp_space;
-                        // 月均还款
-                        ui.add(egui::DragValue::new(&mut self.loan.money_per_month));
-                        // 利息总额
-                        ui.add(egui::DragValue::new(&mut self.loan.total_interest));
-                        // 还款总额
-                        ui.add(egui::DragValue::new(&mut self.loan.total_money));
-                    });
-            });
-            
-
-        });
-
-        
+            |ui| keyboard::CalcKeyboard::from_buffer(&mut self.math_exp).show(ui),
+        );
     }
 
-    fn settings_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui){
+    fn loan_ui(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        let space = 2.0;
+        let calc_size = egui::vec2(500.0, 600.0);
+
+        ui.allocate_ui_with_layout(
+            calc_size,
+            egui::Layout::top_down(egui::Align::Min),
+            |ui| {
+                let temp_space = egui::vec2(20.0, 20.0);
+                ui.spacing_mut().item_spacing = temp_space;
+
+                // 上半部分
+                ui.allocate_ui_with_layout(
+                    ui.available_size(),
+                    egui::Layout::left_to_right(egui::Align::Min),
+                    |ui| {
+                        ui.vertical(|ui| {
+                            // 竖直方向上标签间距
+                            ui.label(egui::RichText::new(
+                                "🔥还款方式：")
+                            .size(16.0)
+                            );
+
+                            ui.label(egui::RichText::new("贷款年限(年):").size(16.0));
+                            ui.label(egui::RichText::new("贷款金额(万元):").size(16.0));
+                            ui.label(egui::RichText::new("贷款利率(%):").size(16.0));
+                        });
+
+                        ui.add_space(space);
+                        ui.vertical(|ui| {
+                            
+                            
+                            ui.horizontal(|ui| {
+                                
+                                ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::from_rgb(51,0,105);
+                                ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::from_rgb(102,0,205);
+                                ui.visuals_mut().widgets.active.weak_bg_fill = egui::Color32::from_rgb(51,0,105);
+                                if ui.add_sized([80.0, 19.0], egui::SelectableLabel::new(
+                                    self.loan.loan_type == loan::LoanType::EqualInterest,
+                                    egui::RichText::new("等额本息").size(15.0),
+                                )).clicked() {
+                                    self.loan.loan_type = loan::LoanType::EqualInterest;
+                                }
+                                if ui.add_sized([80.0, 19.0], egui::SelectableLabel::new(
+                                    self.loan.loan_type == loan::LoanType::EqualPrincipal,
+                                    egui::RichText::new("等额本金").size(15.0),
+                                )).clicked() {
+                                    self.loan.loan_type = loan::LoanType::EqualPrincipal;
+                                }
+                            });
+
+                            let temp_space = egui::vec2(10.0, 18.0);
+                            ui.spacing_mut().item_spacing = temp_space;
+                            // 贷款年限
+                            ui.add_sized(egui::vec2(165.0, 21.5),egui::DragValue::new(&mut self.loan.loan_year));
+                            // 贷款金额
+                            ui.add_sized(egui::vec2(165.0, 21.5),egui::DragValue::new(&mut self.loan.loan_money));
+                            // 贷款利率
+                            ui.add_sized(egui::vec2(165.0, 21.5),egui::DragValue::new(&mut self.loan.loan_rate));
+                        });
+                    },
+                );
+
+
+                // 中间部分
+                ui.allocate_ui_with_layout(
+                    ui.available_size(),
+                    egui::Layout::left_to_right(egui::Align::Min),
+                    |ui| {
+                        ui.add_space(20.0);
+                        ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::from_rgb(0,128,255);
+                        ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::from_rgb(0,130,255);
+                        ui.visuals_mut().widgets.active.weak_bg_fill = PRIMARY_COLOR_ACTIVE;
+                        if ui.add_sized([80.0, 27.0], egui::Button::new(egui::RichText::new("计算").size(14.0))).clicked() {
+                            self.loan.calc();
+                        }
+                        ui.add_space(18.0);
+                        ui.visuals_mut().widgets.inactive.weak_bg_fill = egui::Color32::from_rgb(204,0,0);
+                        ui.visuals_mut().widgets.hovered.weak_bg_fill = egui::Color32::from_rgb(255,0,0);
+                        ui.visuals_mut().widgets.active.weak_bg_fill = PRIMARY_COLOR_ACTIVE;
+                        if ui.add_sized([80.0, 27.0], egui::Button::new(egui::RichText::new("重置").size(14.0))).clicked() {
+                            self.loan.reset();
+                        }
+                    },
+                );
+
+                // 下半部分
+                ui.allocate_ui_with_layout(
+                    ui.available_size(),
+                    egui::Layout::left_to_right(egui::Align::Min),
+                    |ui| {
+                        ui.vertical(|ui| {
+                            // 竖直方向上标签间距
+
+                            //ui.spacing_mut().item_spacing = temp_space;
+                            ui.label(egui::RichText::new("月均还款(万元):").size(16.0));
+                            ui.label(egui::RichText::new("利息金额(万元):").size(16.0));
+                            ui.label(egui::RichText::new("贷款金额(万元):").size(16.0));
+                        });
+
+                        ui.vertical(|ui| {
+                            let temp_space = egui::vec2(10.0, 20.0);
+                            ui.spacing_mut().item_spacing = temp_space;
+
+
+                            let money_per_month = &self.loan.money_per_month;
+                            let total_interest = &self.loan.total_interest;
+                            let total_money = &self.loan.total_money;
+                            ui.visuals_mut().widgets.active.bg_fill = egui::Color32::from_rgb(60, 60, 60); // 设置背景颜色
+                            ui.visuals_mut().widgets.hovered.bg_fill = egui::Color32::from_rgb(60, 60, 60); // 设置背景颜色
+                            ui.visuals_mut().widgets.noninteractive.bg_fill = egui::Color32::from_rgb(60, 60, 60); // 设置背景颜色
+                            ui.visuals_mut().widgets.open.bg_fill = egui::Color32::from_rgb(60, 60, 60); // 设置背景颜色
+                            ui.add_sized(
+                                [165.0, 21.5],
+                                egui::Label::new(
+                                    egui::RichText::new(money_per_month)
+                                        .color(egui::Color32::LIGHT_GREEN)
+                                        .size(14.0)
+                                        
+                                )
+                                .wrap(true),
+                            );
+                            ui.add_sized(
+                                [165.0, 21.5],
+                                egui::Label::new(
+                                    egui::RichText::new(total_interest)
+                                        .color(egui::Color32::LIGHT_GREEN)
+                                        .size(14.0),
+                                )
+                                .wrap(true),
+                            );
+                            ui.add_sized(
+                                [165.0, 21.5],
+                                egui::Label::new(
+                                    egui::RichText::new(total_money)
+                                        .color(egui::Color32::LIGHT_GREEN)
+                                        .size(14.0),
+                                )
+                                .wrap(true),
+                            );
+                        });
+                    },
+                );
+            },
+        );
+    }
+
+    fn settings_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical()
             .max_height(ui.available_height())
             // .auto_shrink([false;2])
-            .show(ui, |ui|{
+            .show(ui, |ui| {
                 ui.label(ui.available_height().to_string());
                 ctx.settings_ui(ui);
             });
@@ -183,10 +236,8 @@ impl CalcApp {
 
 impl eframe::App for CalcApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-       
-
         egui::CentralPanel::default().show(ctx, |ui| {
-            let menu_size = egui::vec2(150.0, ui.available_height());
+            let menu_size = egui::vec2(165.0, ui.available_height());
             let button_fill = ui.visuals().widgets.inactive.weak_bg_fill;
 
             ui.horizontal(|ui| {
@@ -199,7 +250,6 @@ impl eframe::App for CalcApp {
                             ("loan", "利率", calc_state::Nav::Loan),
                             ("settings", "设置", calc_state::Nav::Settings),
                         ] {
-                        
                             let menu_size = egui::vec2(120.0, 32.0);
                             // 设置间距和按钮的外观
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(10.0);
@@ -215,9 +265,7 @@ impl eframe::App for CalcApp {
 
                             let button = ui.add_sized(
                                 menu_size,
-                                egui::Button::new(
-                                   egui::RichText::new(menu).size(14.0),
-                                ),
+                                egui::Button::new(egui::RichText::new(menu).size(14.0)),
                             );
                             if button.clicked() {
                                 if self.ui_state.page != nav {
@@ -229,13 +277,13 @@ impl eframe::App for CalcApp {
                         ui.allocate_space(ui.available_size());
                     },
                 );
-                let offset_y = self.ui_state.at.menu_change * 25.0;
+
                 egui::Frame::group(ui.style())
                     .multiply_with_opacity(0.1)
                     .show(ui, |ui| {
                         ui.allocate_ui_with_layout(
                             ui.available_size(),
-                            egui::Layout::top_down(egui::Align::Center),
+                            egui::Layout::top_down(egui::Align::Min),
                             |ui| match self.ui_state.page {
                                 calc_state::Nav::Standard => self.standard_ui(ctx, ui),
                                 calc_state::Nav::Loan => self.loan_ui(ctx, ui),

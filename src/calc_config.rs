@@ -9,7 +9,7 @@ pub fn custom_font(cc: &eframe::CreationContext<'_>){
     fonts.font_data.insert(
         "OPPOSans-L".to_owned(),
         egui::FontData::from_static(include_bytes!(
-            "../assets/fonts/OPPOSans-L.ttf"
+            "../assets/fonts/YaiHe.ttf"
         )),
     );
 

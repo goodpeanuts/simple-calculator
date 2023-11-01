@@ -14,13 +14,17 @@ pub mod calc;
 //     }
 // }
 
-
+use eframe::{egui};
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result<()> {
+    let options = eframe::NativeOptions {
+        initial_window_size: Some(egui::vec2(550.0, 480.0)), // 设置窗口的宽度和高度
+        ..Default::default() // 使用其他默认选项
+    };
     eframe::run_native(
         "计算器",
-        eframe::NativeOptions::default(),
+        options,
         Box::new(|cc| Box::new(calc::CalcApp::new(cc))),
     )
 }

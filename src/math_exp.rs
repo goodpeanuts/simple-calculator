@@ -46,7 +46,7 @@ impl MathExp {
 
         // 如果插入后闭括号的数量将超过开括号的数量，则禁止插入闭括号。
         if let token::Token::Operation(token::Op::ParenRight) = t {
-            let mut count_paren: i32 = -1; // // 设置为-1，因为在将来我们想要插入一个括号.
+            let mut count_paren: i32 = -1; // // 设置为-1，因为在将来想要插入一个括号.
             for token in &self.tokens {
                 if let token::Token::Operation(p) = token {
                     match p {
@@ -63,7 +63,7 @@ impl MathExp {
         let last_token = self.tokens.last();
         if last_token.is_none() {
             // 当token列表为空时，
-            // 我们只允许插入新令牌
+            // 只允许插入新令牌
             // 如果它们不是操作的标记（左括号除外）。
             if !matches!(t,token::Token::Operation(_)) || matches!(t,token::Token::Operation(token::Op::ParenLeft)) {
                 push(&mut self.tokens, t);
@@ -106,7 +106,7 @@ impl MathExp {
         if allow_insert {
             push(&mut self.tokens, t);
         } else {
-            self.update_output(format!("Токен {} не может быть добавлен после {}", t, last_token).as_str());
+            self.update_output(format!("{} 无法添加到 {} 之后", t, last_token).as_str());
         }
         let mut s = String::new();
         for token in &self.tokens {
@@ -170,7 +170,7 @@ impl MathExp {
                 self.buffer = "0.".to_string();
                 true
             } else if self.buffer.contains('.') {
-                // мы не можем разрешить добавить больше чем одну точку.
+                // 不允许添加多个点。
                 false
             } else {
                 self.buffer.push('.');
@@ -221,7 +221,7 @@ impl MathExp {
                                         }
                                     });
                                 } else {
-                                    self.output = "Ошибка вычисления".to_string()
+                                    self.output = "计算错误".to_string()
                                 }
                             }
                             token::Token::Operation(op) => {
@@ -245,8 +245,8 @@ impl MathExp {
                                             }
                                             _ => { None }
                                         } { stack.push(token::Token::Operand(val)) }
-                                    } else { self.output = "Ошибка вычисления".to_string() }
-                                } else { self.output = "Ошибка вычисления".to_string() }
+                                    } else { self.output = "计算错误".to_string() }
+                                } else { self.output = "计算错误".to_string() }
                             }
                             token::Token::Operand(_) => { stack.push(t); }
                         }
@@ -256,7 +256,7 @@ impl MathExp {
                     self.buffer.clear();
                     self.tokens.clear();
                     t.to_string()
-                } else { "Ошибка вычисления".to_string() };
+                } else { "计算错误".to_string() };
             }
         }
     }
@@ -316,7 +316,7 @@ fn yard(input: &Vec<token::Token>) -> Result<Vec<token::Token>, String> {
                             }
                         }
                     } else {
-                        return Err("В выражении отсутствует скобка.".to_string());
+                        return Err("缺少括号".to_string());
                     }
                 }
             }
