@@ -19,6 +19,42 @@ pub const PRIMARY_COLOR_HOVERED: egui::Color32 = egui::Color32::from_rgb(35, 115
 pub const PRIMARY_COLOR_ACTIVE: egui::Color32 = egui::Color32::from_rgb(15, 75, 170);
 
 impl CalcApp {
+    fn draw_menu_line(&mut self, ctx: &egui::Context, ui: &mut egui::Ui){
+        use egui::*;
+    
+        let line_width = 3.0;
+        let line_height = 16.0;
+        let line_root = ui.cursor().min + vec2(8.0, (32.0-line_height)/2.0);
+        let target = match self.ui_state.page{
+            calc_state::Nav::Standard => Rect::from_min_size(line_root, vec2(line_width, line_height)),
+            calc_state::Nav::Loan => Rect::from_min_size(line_root + vec2(0.0, 42.0), vec2(line_width, line_height)),
+            calc_state::Nav::Settings => Rect::from_min_size(line_root + vec2(0.0, 84.0), vec2(line_width, line_height)),
+        };
+        let mut current = self.ui_state.current_menu_line_rect.unwrap_or(target);
+        if self.ui_state.at.menu_change > 0.0{
+            let target_y_center = (target.min.y + target.max.y) / 2.0;
+            if (current.min.y - target_y_center).abs() > (current.max.y - target_y_center).abs(){
+                current.min.y = lerp((current.min.y)..=(target.min.y), 
+                    ((1.0 - self.ui_state.at.menu_change) * 2.0 - 1.0).clamp(0.0, 1.0));
+                current.max.y = lerp((current.max.y)..=(target.max.y), 
+                    ((1.0 - self.ui_state.at.menu_change) * 2.0).clamp(0.0, 1.0));
+            }else{
+                current.min.y = lerp((current.min.y)..=(target.min.y), 
+                    ((1.0 - self.ui_state.at.menu_change) * 2.0).clamp(0.0, 1.0));
+                current.max.y = lerp((current.max.y)..=(target.max.y), 
+                    ((1.0 - self.ui_state.at.menu_change) * 2.0 - 1.0).clamp(0.0, 1.0));
+            }
+            ui.painter().rect_filled(current, Rounding::same(line_width / 2.0), PRIMARY_COLOR);
+            self.ui_state.current_menu_line_rect = Some(current);
+            self.ui_state.at.menu_change = self.ui_state.at.menu_change - 0.1;
+            ctx.request_repaint();
+        }else{
+            self.ui_state.at.menu_change = 0.0;
+            ui.painter().rect_filled(target, Rounding::same(line_width / 2.0), PRIMARY_COLOR);
+            self.ui_state.current_menu_line_rect = Some(target);
+        }
+    }
+    
     fn standard_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
         ui.allocate_ui_with_layout(
             ui.available_size(),
@@ -245,6 +281,7 @@ impl eframe::App for CalcApp {
                     menu_size,
                     egui::Layout::top_down(egui::Align::Center),
                     |ui| {
+                        self.draw_menu_line(ctx, ui);
                         for (name, menu, nav) in [
                             ("standard", "标准", calc_state::Nav::Standard),
                             ("loan", "利率", calc_state::Nav::Loan),
