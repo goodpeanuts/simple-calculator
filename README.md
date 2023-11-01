@@ -2,6 +2,13 @@
 
 ![Screenshot7](tutorial/img/Screenshot7.png)
 
+## 在原项目的基础上学习egui并完成的界面
+![Screenshot7](tutorial/img/1.png)
+
+![Screenshot7](tutorial/img/2.png)
+
+![Screenshot7](tutorial/img/3.png)
+
 ## 指南：[这里](tutorial/tutorial.md)。
 
 ## 演示：[这里](https://mae664128.github.io/calculator-wasm-rust-pwa/)。
