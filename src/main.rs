@@ -19,7 +19,7 @@ pub mod calc;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result<()> {
     eframe::run_native(
-        "calculator-wasm-rust-pwa",
+        "计算器",
         eframe::NativeOptions::default(),
         Box::new(|cc| Box::new(calc::CalcApp::new(cc))),
     )

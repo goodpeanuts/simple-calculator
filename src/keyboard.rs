@@ -4,7 +4,7 @@ use crate::math_exp;
 
 
 static KEYS: [&str; 25] = [
-    "√", "C", "(", ")", "<=",
+    "√", "C", "(", ")", "del",
     "sin", "7", "8", "9", "*",
     "cos", "4", "5", "6", "/",
     "tg", "1", "2", "3", "-",
@@ -40,7 +40,7 @@ impl<'a> CalcKeyboard<'a> {
                     if CustomKey::from(*title).ui(ui).clicked() {
                         match *title {
                             "C" => { self.buffer.clear(); }
-                            "<=" => { self.buffer.pop(); }
+                            "del" => { self.buffer.pop(); }
                             "=" => { self.buffer.calculate(); }
                             _ => { self.buffer.add(title); }
                         }

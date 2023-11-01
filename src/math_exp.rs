@@ -1,7 +1,6 @@
 use crate::token;
 use crate::token::Weight;
 
-
 pub struct MathExp {
     tokens: Vec<token::Token>,
     buffer: String,
@@ -31,10 +30,12 @@ impl MathExp {
         self.output = s.to_string();
     }
 
-    /// Вставка токенов с учетом правил:
-    ///
-    /// * После Операнда (число) обязательно должен следовать знак операции или знак закрывающейся скобки.
-    /// * После знака операции может быть только знак открывающейся скобки или Операнд (число).
+
+    // 插入运算符需遵循以下规则：
+    
+    // 操作数 后必须紧跟操作符号或闭括号
+    // 操作符 后只能是开括号或操作数（数字）
+
     fn push_to_token(&mut self, t: token::Token) {
         fn push(tokens: &mut Vec<token::Token>, t: token::Token) {
             if let token::Token::Function(_) = t {
@@ -42,10 +43,10 @@ impl MathExp {
                 tokens.push(token::Token::Operation(token::Op::ParenLeft));
             } else { tokens.push(t); }
         }
-        // Запрещаем вставлять закрывающуюся скобку,
-        // если их количество после вставке будет превышать количество открывающихся скобок.
+
+        // 如果插入后闭括号的数量将超过开括号的数量，则禁止插入闭括号。
         if let token::Token::Operation(token::Op::ParenRight) = t {
-            let mut count_paren: i32 = -1; // Устанавливаем в -1, т.к. в будущем мы хотим вставить одну скобку.
+            let mut count_paren: i32 = -1; // // 设置为-1，因为在将来我们想要插入一个括号.
             for token in &self.tokens {
                 if let token::Token::Operation(p) = token {
                     match p {
@@ -61,9 +62,9 @@ impl MathExp {
 
         let last_token = self.tokens.last();
         if last_token.is_none() {
-            // Когда список токенов пустой,
-            // мы будем разрешать вставку новых токенов только
-            // если они не являются токенами операции (за исключение открывающейся скобки).
+            // 当token列表为空时，
+            // 我们只允许插入新令牌
+            // 如果它们不是操作的标记（左括号除外）。
             if !matches!(t,token::Token::Operation(_)) || matches!(t,token::Token::Operation(token::Op::ParenLeft)) {
                 push(&mut self.tokens, t);
             }
@@ -73,15 +74,15 @@ impl MathExp {
 
 
         let allow_insert = match last_token {
-            // После числа:
+            // 数字后：
             token::Token::Operand(_) => {
                 match t {
-                    // Запрещаем вставку функции, чисел или левой скобки после числа.
+                    // 防止在数字后插入函数、数字或左括号。
                     token::Token::Function(_) | token::Token::Operand(_) | token::Token::Operation(token::Op::ParenLeft) => { false }
                     _ => { true }
                 }
             }
-            // После закрывающейся скобки:
+            // 在右括号之后：
             token::Token::Operation(token::Op::ParenRight) => {
                 match t {
                     token::Token::Operation(token::Op::ParenLeft) => { false }
@@ -89,11 +90,11 @@ impl MathExp {
                     _ => { false }
                 }
             }
-            // После операции кроме закрывающейся скобки:
+            // 除右括号外的操作之后：
             token::Token::Operation(_) => {
                 match t {
                     token::Token::Operation(token::Op::ParenLeft) => { true }
-                    // Запрещаем вставку операций после операции (исключение открывающаяся скобка).
+                    // 防止在运算后插入运算（左括号异常）。
                     token::Token::Operation(_) => { false }
                     _ => { true }
                 }
@@ -116,10 +117,9 @@ impl MathExp {
         }
     }
 
-    /// Удалить значение из буфера и поместить его в конец вектора с токенами.
-    ///
-    /// Будет выполнена попытка преобразовать значение хранящиеся в буфере.
-    ///
+    // 从缓冲区中删除该值并将其放置在标记向量的末尾。
+    // 将尝试转换存储在缓冲区中的值。
+  
     fn pop_buffer(&mut self) -> bool {
         if self.buffer.is_empty() { return true; }
         if let Ok(val) = self.buffer.parse::<f64>() {
@@ -136,31 +136,29 @@ impl MathExp {
         } else { false }
     }
 
-    /// Удалить последнее значение из вектора с токенами.
+    // 从标记向量中删除最后一个值。
     pub fn pop(&mut self) {
         if self.buffer.is_empty() {
             self.tokens.pop();
-            // Если после удаленного токена стоял токен функции, то мы удаляем и его.
+            // 如果删除的 token 之后还有一个 function token，那么也将其删除.
             if matches!(self.tokens.last(), Some(token::Token::Function(_))) { self.tokens.pop(); }
         } else {
-            // Если у нас есть значения в буфере, то мы сначала удаляем значения из него.
+            // 如果缓冲区中有值，那么首先从中删除这些值.
             self.buffer.pop();
         }
     }
 
-    /// Очистить буфера и вектор с токенами.
+    // 清除缓冲区和带有标记的向量.
     pub fn clear(&mut self) {
         self.buffer.clear();
         self.tokens.clear();
     }
 
-    /// Создать и добавить новый токен используя указанную строку.
-    ///
-    /// При любом добавление сначала будет выполняться проверка необходимости
-    /// добавления строки в буфер.
-    /// Если поступает последовательность символов, которая может интерпретироваться
-    /// как операция или функция, то будет выполнена попытка выдавить текущее значение
-    /// из буфера и только после будет выполнено добавление нового значения.
+    // 使用指定的字符串创建并添加新标记。
+    // 对于任何添加，都会首先检查必要性，添加一行到缓冲区。
+    // 如果到达可以解释的字符序列
+    // 作为操作或函数，将尝试挤出当前值
+    // 从缓冲区中取出，然后才会添加新值。
     pub fn add(&mut self, s: &str) -> bool {
         let allow_number_input = !matches!(
             self.tokens.last(),
@@ -280,29 +278,24 @@ impl std::fmt::Display for MathExp {
 }
 
 
-/// # Алгоритм сортировочной станции
+/// # 逆波兰表达式算法
 ///
-/// [Материал из Википедии — свободной энциклопедии](https://en.wikipedia.org/wiki/Shunting_yard_algorithm)
+/// [来自维基百科 - 自由的百科全书](https://en.wikipedia.org/wiki/Shunting_yard_algorithm)
 ///
-/// Алгоритм сортировочной станции — способ разбора математических выражений,
-/// представленных в инфиксной нотации. Может быть использован для получения вывода в виде
-/// обратной польской нотации или в виде абстрактного синтаксического дерева.
-/// Алгоритм предложен Эдсгером Дейкстрой и назван им «алгоритм сортировочной станции»,
-/// поскольку напоминает действие железнодорожной сортировочной станции.
+/// 逆波兰表达式算法是一种处理以中缀表示的数学表达式的方法。它可以用于以逆波兰表示法或抽象语法树的形式获取输出。
+/// 该算法由艾兹赫·迪科斯彻提出，并由他命名为 "逆波兰表达式算法"，因为它类似于铁路的分类站的操作。
 ///
-/// Так же, как и вычисление значений выражений в обратной польской записи,
-/// алгоритм работает при помощи стека. Инфиксная запись математических выражений чаще всего
-/// используется людьми, её примеры: 2+4 и 3+6*(3-2). Для преобразования в обратную польскую
-/// нотацию используется 2 строки: входная и выходная, и стек для хранения операторов,
-/// ещё не добавленных в выходную очередь. При преобразовании алгоритм считывает 1 символ и
-/// производит действия, зависящие от данного символа.
+/// 与以逆波兰表示法计算表达式值类似，该算法也使用堆栈。中缀表示法的数学表达式通常由人类使用，例如：2+4 和 3+6*(3-2)。
+/// 转换为逆波兰表示法时使用两个字符串：输入字符串和输出字符串，以及用于存储尚未添加到输出队列中的运算符的堆栈。
+/// 在转换过程中，该算法读取一个字符并执行依赖于该字符的操作。
+
 fn yard(input: &Vec<token::Token>) -> Result<Vec<token::Token>, String> {
     let mut output: Vec<token::Token> = vec![];
     let mut stack: Vec<token::Token> = vec![];
     for token in input {
         match token {
             token::Token::Operand(_o) => {
-                // Если токен — число, то добавить его в очередь вывода.
+                // 如果 token 是数字，则将其添加到输出队列中。
                 output.push(token.clone())
             }
             token::Token::Function(_f) => {
@@ -343,7 +336,7 @@ fn yard(input: &Vec<token::Token>) -> Result<Vec<token::Token>, String> {
     while let Some(last_token_in_stack) = stack.pop() {
         match last_token_in_stack {
             token::Token::Operation(token::Op::ParenLeft) => {
-                return Err("В выражении отсутствует скобка.".to_string());
+                return Err("缺少括号".to_string());
             }
             _ => { output.push(last_token_in_stack) }
         }

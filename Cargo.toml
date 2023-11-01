@@ -7,7 +7,8 @@ description = "A simple calculator created to learn how to work with web gui on 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-eframe = { version = "0.23.0", default-features = false, features = ["default_fonts", "glow", "persistence"] }
-bevy = "0.11"
-bevy_egui = "0.22"
+[dependencies.eframe]
+version = "0.22.0"
+[dependencies.egui_extras]
+version = "0.22.0"
+features = ["svg"]
