@@ -57,14 +57,14 @@ pub struct CustomKey {
 }
 
 impl CustomKey {
-    /// Создать новую кнопку и установить заданный текст.
+    // 创建一个新按钮并设置给定的文本.
     pub fn from(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),
             ..Default::default()
         }
     }
-    /// Задать размер кнопке.
+    // 设置按钮大小.
     fn _set_size(mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;

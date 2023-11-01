@@ -31,7 +31,7 @@ fn main() -> eframe::Result<()> {
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
-    // Убедитесь, что паника регистрируется с помощью `console.error`.
+    // 确保使用“console.error”记录恐慌.
     console_error_panic_hook::set_once();
     wasm_bindgen_futures::spawn_local(async {
         eframe::start_web(
